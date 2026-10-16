@@ -1,0 +1,170 @@
+{
+  "name": "checkpoint1_pamela_gonzalez.",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1251f74a-f370-47bb-be71-bc40dec375b5",
+      "name": "When chat message received",
+      "webhookId": "7307e1ae-3a04-4b10-bc36-e9db0472d20d"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# ROL\nEres el Agente de Triaje de Soporte de la empresa. Tu función es recibir mensajes de clientes, clasificarlos y escalar los casos urgentes al equipo de soporte.\n\n# ÁMBITO\nSolo atiendes solicitudes de soporte de clientes: fallas del servicio, problemas de acceso, errores de facturación y dudas de uso. Cualquier otro tema queda fuera de tu alcance.\n\n# OBJETIVO\n1. Entender el problema del cliente.\n2. Clasificarlo con una prioridad: URGENTE, NORMAL o BAJA.\n3. Si es URGENTE, enviar un correo de escalamiento al equipo de soporte usando la herramienta de Gmail.\n4. Responder al cliente con un resumen claro: prioridad asignada y siguiente paso.\n\n# REGLAS Y ESCALAMIENTO\n- Es URGENTE si: el servicio está caído, hay un cobro duplicado o incorrecto, o el cliente no puede acceder a su cuenta.\n- Es NORMAL si: hay un error que no detiene el trabajo del cliente.\n- Es BAJA si: es una duda de uso o una sugerencia.\n- Usa la herramienta de Gmail solo para casos URGENTES y solo una vez por caso.\n- NO tienes permitido: prometer reembolsos, compensaciones o fechas de solución; pedir contraseñas o datos de tarjetas; inventar información de la empresa; responder temas fuera del ámbito de soporte.\n- Si no tienes información suficiente, pide al cliente un solo dato adicional.\n- Si el tema está fuera de tu ámbito, indica amablemente que solo atiendes soporte.\n- Responde siempre en español, de forma breve, clara y profesional.",
+          "maxIterations": 7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5d37a182-f160-4ebb-bc33-dde5f2bf0b55",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-5-5",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 5.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        96,
+        208
+      ],
+      "id": "9473d2b1-733d-494b-bd20-b1b6b17c08bf",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "9CHzAgxARHDA59jY",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Herramienta de escalamiento por correo al equipo de soporte. Úsala ÚNICAMENTE cuando el caso del cliente sea clasificado como URGENTE, es decir, cuando ocurra alguno de estos casos: el servicio está caído o no funciona para el cliente; existe un cobro duplicado, incorrecto o no reconocido; o el cliente no puede acceder a su cuenta. El correo debe incluir: prioridad URGENTE, resumen del problema en una o dos oraciones, datos que el cliente haya compartido (nombre, empresa, número de pedido si existe) y la acción sugerida para el equipo. NO uses esta herramienta para casos de prioridad NORMAL o BAJA, para dudas de uso, sugerencias, saludos o temas fuera de soporte. Úsala una sola vez por caso.",
+        "sendTo": "amour.pame@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        208
+      ],
+      "id": "787b3d76-131d-417e-b5e1-4f997869abb4",
+      "name": "Send a message in Gmail",
+      "webhookId": "30d94b77-c9e7-4029-8b48-e8c18fa5e01e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QIuJwigtwtW9RJTo",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "amour.pame@gmail.com",
+        "subject": "Tarea completada - Agente de Triaje de Soporte",
+        "emailType": "text",
+        "message": "=Tarea completada ✅\n\nRespuesta final del agente:\n{{ $json.output }}\n\nFecha: {{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "4025d0a1-8bce-46e2-939f-17ea976ba974",
+      "name": "Send a message",
+      "webhookId": "3958c881-87f5-42d3-a63d-e4ab17c92faa",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QIuJwigtwtW9RJTo",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "96b0f434-e181-4622-b857-49d4a215393e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fa20b184864deddd1430c9ebbc9a24cbe449f9d0fa1e6abdc7247e113606935e"
+  },
+  "nodeGroups": [],
+  "id": "t8QJvC74w0CVPXwG",
+  "tags": []
+}
