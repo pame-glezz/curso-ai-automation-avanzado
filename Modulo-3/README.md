@@ -153,10 +153,3 @@ correspondiente; tu trabajo es responderle al cliente de forma cálida y clara.
 | Resumen (más de 5) | En el mensaje 6 se activó la rama true y Claude Haiku devolvió el JSON con las tres claves exactas. |
 | Aislamiento | Una segunda sesión creó su propia fila; la primera quedó intacta y el agente no mencionó datos ajenos. |
 
-## Cómo importarlo
-
-1. Crea en Airtable la base `Memoria_Agente_Modulo3` y la tabla `Sesiones` con las columnas de arriba.
-2. En n8n: **Create workflow → ⋯ → Import from File** y elige `manager_modulo3_gonzalez_pamela.json`.
-3. Conecta tus credenciales de **Anthropic**, **Gmail** y **Airtable** (Personal Access Token con `data.records:read`, `data.records:write` y `schema.bases:read`).
-4. En los nodos de Airtable elige tu base y tabla; en los nodos **Llamar Worker** elige los Workers del Módulo 2.
-5. Prueba desde el chat: escribe `me llamo <tu nombre>` y después más de 5 mensajes en la misma sesión para que se dispare el resumen. Con **Reset session** pruebas un usuario nuevo.
