@@ -1,0 +1,164 @@
+{
+  "name": "worker1_soporte_tecnico_gonzalez_pamela",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "mensaje"
+            },
+            {
+              "name": "categoria"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a0c91402-ef0b-4b81-ac59-7cce42c4d699",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres un analista de soporte técnico. Lee el mensaje del cliente y extrae los datos clave.\n\nMensaje del cliente: {{ $json.mensaje }}\n\nResponde SOLO con un JSON válido, sin texto extra y sin ```:\n{\"problema\": \"resumen corto del problema\", \"producto\": \"producto o servicio afectado\", \"urgencia\": \"ALTA, MEDIA o BAJA\", \"siguiente_paso\": \"qué debe hacer el equipo técnico\"}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        224,
+        0
+      ],
+      "id": "2dea6e39-7649-49d6-9853-26990b1b4d47",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-5-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 5.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        160,
+        208
+      ],
+      "id": "f63e62a2-2a26-4e13-afce-e86a24b346e8",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "9CHzAgxARHDA59jY",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "722803ff-b87c-45d7-aeb3-b59f24238f7f",
+              "name": "status",
+              "value": "success",
+              "type": "string"
+            },
+            {
+              "id": "77eed2b6-ce6f-47db-a41b-3142503cd309",
+              "name": "worker",
+              "value": "soporte_tecnico",
+              "type": "string"
+            },
+            {
+              "id": "1a4c4318-cbd6-4604-9eeb-a8558e4ae708",
+              "name": "data",
+              "value": "={{ JSON.parse($json.text.replace(/```json|```/g, '').trim()) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        592,
+        0
+      ],
+      "id": "64d60446-68b0-4f5a-b3c3-0badc6bc3916",
+      "name": "Salida Worker"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "mensaje": "Hola, desde ayer mi router modelo X200 no conecta a internet y trabajo desde casa, necesito ayuda urgente",
+          "categoria": "SOPORTE_TECNICO"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Salida Worker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 60,
+    "availableInMCP": false
+  },
+  "versionId": "80dfee94-2d2c-40d2-b395-80666d0308e4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fa20b184864deddd1430c9ebbc9a24cbe449f9d0fa1e6abdc7247e113606935e"
+  },
+  "nodeGroups": [],
+  "id": "HPgoPetXEw7cM6vX",
+  "tags": []
+}

@@ -1,0 +1,540 @@
+{
+  "name": "manager_modulo2_gonzalez_pamela",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-5-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 5.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        160,
+        208
+      ],
+      "id": "e73b62ef-391e-4503-a6c2-1b0b3e65af9f",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "9CHzAgxARHDA59jY",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "6164be9b-884a-4c5e-984a-7299a2d497aa",
+      "name": "chat trigger",
+      "webhookId": "45ec4ebd-477b-4c51-a1f8-882f07c02f0f"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres un router de triaje de soporte al cliente. Clasifica el mensaje en UNA sola categoría de esta lista cerrada:\n\n- SOPORTE_TECNICO: fallas, errores, equipos o servicios que no funcionan, problemas de conexión o de acceso.\n- FACTURACION: cobros, pagos, facturas, reembolsos, cargos duplicados o precios.\n- OTRO: cualquier mensaje que no encaje claramente, sea confuso o mezcle temas.\n\nMensaje del cliente: {{ $json.chatInput }}\n\nResponde SOLO con la palabra de la categoría (SOPORTE_TECNICO, FACTURACION u OTRO), sin explicación ni signos.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        128,
+        0
+      ],
+      "id": "01c9021a-6cb8-4280-855d-67dfdd6c362e",
+      "name": "Router IA"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text.trim() }}",
+                    "rightValue": "SOPORTE_TECNICO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3fcb8b57-0d55-46a4-acb0-7d75b1e64c5a"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f1c8aae8-491b-439d-b8bc-37551a2a4af2",
+                    "leftValue": "={{ $json.text.trim() }}",
+                    "rightValue": "FACTURACION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        112
+      ],
+      "id": "8b445750-6773-44ea-8db8-d3bb5299c5b3",
+      "name": "Switch Enrutador"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37821377-a90c-480f-b026-6dff1540d2aa",
+              "name": "mensaje",
+              "value": "={{ $('chat trigger').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "65a77e63-ae3c-40e9-9ba7-24b22ce77d5e",
+              "name": "categoria",
+              "value": "={{ $json.text.trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        768,
+        -176
+      ],
+      "id": "b30bc246-0109-4469-b504-e89747f44f73",
+      "name": "Preparar datos Soporte"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "HPgoPetXEw7cM6vX",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/HPgoPetXEw7cM6vX",
+          "cachedResultName": "worker1_soporte_tecnico_gonzalez_pamela"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "mensaje": "={{ $json.mensaje }}",
+            "categoria": "={{ $json.categoria }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        992,
+        -176
+      ],
+      "id": "c84b153b-56d7-4317-b1d8-cfda18cf4788",
+      "name": "Llamar Worker Soporte",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37821377-a90c-480f-b026-6dff1540d2aa",
+              "name": "mensaje",
+              "value": "={{ $('chat trigger').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "65a77e63-ae3c-40e9-9ba7-24b22ce77d5e",
+              "name": "categoria",
+              "value": "={{ $json.text.trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        736,
+        32
+      ],
+      "id": "71969722-9264-43e4-a3e1-16e57abee3c9",
+      "name": "Preparar datos de facturacion"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "eXXZcWtK84exQwE2",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/eXXZcWtK84exQwE2",
+          "cachedResultName": "worker2_facturacion_gonzalez_pamela"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "mensaje ": "={{ $json.mensaje }}",
+            "categoria ": "={{ $json.categoria }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "mensaje ",
+              "displayName": "mensaje ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "categoria ",
+              "displayName": "categoria ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        960,
+        32
+      ],
+      "id": "83f0f63e-a793-4bc2-8b66-451c885e3ab8",
+      "name": "Llamar Worker Facturacion",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "725c9630-52db-4f30-b700-e2773e880df7",
+              "name": "status",
+              "value": "escalado",
+              "type": "string"
+            },
+            {
+              "id": "7cdb3a04-c49e-4d05-967e-d5ef5c1b68f7",
+              "name": "worker",
+              "value": "supervisor_humano",
+              "type": "string"
+            },
+            {
+              "id": "44315e19-aed8-4c2f-ab71-88d3d8622a4b",
+              "name": "data",
+              "value": "={{ { \"mensaje\": $('chat trigger').item.json.chatInput, \"motivo\": \"Intención dudosa u OTRO: requiere revisión de un supervisor humano\" } }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        720,
+        240
+      ],
+      "id": "7b08a653-da46-4253-9dab-1bd950e1e408",
+      "name": "Escalar a Supervisor"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a6686160-cb01-431a-a430-d9673883894b",
+              "name": "status",
+              "value": "error",
+              "type": "string"
+            },
+            {
+              "id": "79077b29-f9e1-4586-9c28-ee24a9bc230c",
+              "name": "worker",
+              "value": "worker_con_falla",
+              "type": "string"
+            },
+            {
+              "id": "caaf0d33-abba-4a15-8e2a-89387d19b0c1",
+              "name": "data ",
+              "value": "={{ { \"mensaje\": $('chat trigger').item.json.chatInput, \"categoria\": $('Router IA').item.json.text, \"detalle\": \"El Worker no respondió o falló. Se requiere revisión manual.\" } }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1344,
+        -160
+      ],
+      "id": "bb1c78ad-de8e-4a0f-859b-57ac72b0cec3",
+      "name": "Error Worker"
+    },
+    {
+      "parameters": {
+        "sendTo": "amour.pame@gmail.com",
+        "subject": "=Caso: {{ $json.data.asunto || $json.data.problema || $json.data.motivo || $json.data.detalle }}",
+        "message": "=<div style=\"font-size:15px\">{{ $json.data.cuerpo ? $json.data.cuerpo.replace(/\\n/g, '<br>') : Object.entries($json.data).map(([k, v]) => '<p><b>' + k.replace(/_/g, ' ') + ':</b> ' + String(v).replace(/\\n/g, '<br>') + '</p>').join('') }}</div>\n<hr>\n<div style=\"font-size:11px;color:#888\">\n<b>Trazabilidad</b><br>\nWorker: {{ $json.worker }} | Estado: {{ $json.status }}<br>\nParámetros enviados: mensaje = \"{{ $('chat trigger').item.json.chatInput }}\" | categoria = {{ $('Router IA').item.json.text.trim() }}<br>\nFecha: {{ $now.toFormat('yyyy-MM-dd HH:mm') }}\n</div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        96
+      ],
+      "id": "770956ce-8cf4-4258-8389-1262524b0daf",
+      "name": "Reporte Gmail",
+      "webhookId": "40638f4e-1e09-4b94-a372-94c63c189138",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QIuJwigtwtW9RJTo",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Router IA",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chat trigger": {
+      "main": [
+        [
+          {
+            "node": "Router IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router IA": {
+      "main": [
+        [
+          {
+            "node": "Switch Enrutador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Enrutador": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos Soporte",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar datos de facturacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Escalar a Supervisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos Soporte": {
+      "main": [
+        [
+          {
+            "node": "Llamar Worker Soporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos de facturacion": {
+      "main": [
+        [
+          {
+            "node": "Llamar Worker Facturacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamar Worker Soporte": {
+      "main": [
+        [
+          {
+            "node": "Reporte Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Worker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escalar a Supervisor": {
+      "main": [
+        [
+          {
+            "node": "Reporte Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamar Worker Facturacion": {
+      "main": [
+        [
+          {
+            "node": "Reporte Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Worker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Worker": {
+      "main": [
+        [
+          {
+            "node": "Reporte Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8b6b8500-a148-477f-84ed-75d5c868e207",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fa20b184864deddd1430c9ebbc9a24cbe449f9d0fa1e6abdc7247e113606935e"
+  },
+  "nodeGroups": [],
+  "id": "f1MOGkDuTJe38XFT",
+  "tags": []
+}
